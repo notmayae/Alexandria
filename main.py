@@ -58,13 +58,6 @@ async def createJob(upload_file: UploadFile = File(...)):
 
 @app.get("/api/jobs/{job_id}")
 async def jobStatus(job_id: str):
-    r = redis.Redis(
-    host='redis-11633.crce288.eu-central-1-1.ec2.cloud.redislabs.com',
-    port=11633,
-    decode_responses=True,
-    username="default",
-    password="iAgAWTIigIKzgku2OIhIHR9J91Axrb9F",
-)
     return (r.get(job_id))
 
 
