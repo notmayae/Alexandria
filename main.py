@@ -42,9 +42,9 @@ async def createJob(upload_file: UploadFile = File(...)):
     if routing_key == "process.unassigned":
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_type}")
     
-    job_id = uuid.uuid4()
+    job_id = str(uuid.uuid4())
     
-    r.set(str(job_id), json.dumps({ "status": "processing", "task_type": routing_key, "last_update": datetime().isoformat()}))
+    r.set(job_id), json.dumps({ "status": "processing", "task_type": routing_key, "last_update": datetime.now().isoformat()})
 
 
     MAX_DIRECT_PAYLOAD_SIZE = 1 * 1024 * 1024 # 1 Megabyte
@@ -59,6 +59,7 @@ async def createJob(upload_file: UploadFile = File(...)):
         ticket_payload = {
             "job_id": job_id,
             "task_type": routing_key,
+            "payload_type": "ticket",
             "file_location": file_path 
         }
         
@@ -86,8 +87,10 @@ async def createJob(upload_file: UploadFile = File(...)):
 
 @app.get("/api/jobs/{job_id}")
 async def jobStatus(job_id: str):
-    return (r.get(job_id))
-
+    job_data = r.get(job_id)
+    if job_data:
+        return json.loads(job_data)
+    return {"error": "Job not found"}
 
 @app.get("/")
 async def main():
