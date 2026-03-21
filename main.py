@@ -5,7 +5,8 @@ import redis
 from datetime import datetime
 import json
 import pika
-
+import os
+import shutil
 
 app = FastAPI()
 
@@ -34,6 +35,7 @@ ROUTING_MAP = {
 
 @app.post("/api/jobs")
 async def createJob(upload_file: UploadFile = File(...)):
+
     file_type = upload_file.content_type
     routing_key = ROUTING_MAP.get(file_type, "process.unassigned")
 
@@ -44,11 +46,37 @@ async def createJob(upload_file: UploadFile = File(...)):
     
     r.set(str(job_id), json.dumps({ "status": "processing", "task_type": routing_key, "last_update": datetime().isoformat()}))
 
-    file_content = await upload_file.read()
+
+    MAX_DIRECT_PAYLOAD_SIZE = 1 * 1024 * 1024 # 1 Megabyte
+    
+    if upload_file.size >= MAX_DIRECT_PAYLOAD_SIZE:
+        save_directory = "/tmp/alexandria_assets/"
+        os.makedirs(save_directory, exist_ok=True)
+        file_path = f"{save_directory}{job_id}_{upload_file.filename}"
+
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(upload_file.file, buffer)
+        ticket_payload = {
+            "job_id": job_id,
+            "task_type": routing_key,
+            "file_location": file_path 
+        }
+        
+
+    else:
+        file_content = await upload_file.read()
+        ticket_payload = {
+        "job_id": job_id,
+        "task_type": routing_key,
+        "payload_type": "direct",
+        "data": file_content.decode("utf-8") 
+        }
+    
     channel.basic_publish(
         exchange="Alexandria",
         routing_key=routing_key,
-        body=file_content)
+        body=json.dumps(ticket_payload)
+        )
     
     return {
         "job_id": job_id, 
