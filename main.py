@@ -16,7 +16,7 @@ r = redis.Redis(
     port=11633,
     decode_responses=True,
     username="default",
-    password="iAgAWTIigIKzgku2OIhIHR9J91Axrb9F",
+    password=os.getenv("REDIS_PASSWORD"),
 )
 
 #RabbitMQ Connection
