@@ -7,8 +7,10 @@ import json
 import pika
 import os
 import shutil
+from dotenv import load_dotenv
 
 app = FastAPI()
+load_dotenv()
 
 #Redis Connection
 r = redis.Redis(
@@ -38,13 +40,11 @@ async def createJob(upload_file: UploadFile = File(...)):
 
     file_type = upload_file.content_type
     routing_key = ROUTING_MAP.get(file_type, "process.unassigned")
-
     if routing_key == "process.unassigned":
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_type}")
     
     job_id = str(uuid.uuid4())
-    
-    r.set(job_id), json.dumps({ "status": "processing", "task_type": routing_key, "last_update": datetime.now().isoformat()})
+    r.set((job_id), json.dumps({ "status": "processing", "task_type": routing_key, "last_update": datetime.now().isoformat()}))
 
 
     MAX_DIRECT_PAYLOAD_SIZE = 1 * 1024 * 1024 # 1 Megabyte
