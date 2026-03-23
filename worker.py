@@ -80,7 +80,6 @@ def callback(ch, method, properties, body):
     finally:
         message = json.loads(body.decode())
         file_location = message.get("file_location")
-        print(file_location)
         # If the file exists, wipe it from the hard drive
         if file_location and os.path.exists(file_location):
             os.remove(file_location)
