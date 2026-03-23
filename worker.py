@@ -27,7 +27,7 @@ r = redis.Redis(
 )
 
 # Maps incoming routing keys to their specific execution modules.
-# Extensible: Add a new module here without modifying core worker logic.
+# *** CHANGE THIS TO MATCH YOUR MODULES ***
 ROUTING_MAP= { "process.json": handling_json,
                 "process.log": handling_log }
 
