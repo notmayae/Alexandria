@@ -42,7 +42,7 @@ def send_log_to_rabbitmq(log_path, job_id, result,ch):
         "result_value": result.returncode    
     }
     ch.basic_publish(
-        exchange="Alexandria",
+        exchange=os.getenv("RABBITMQ_EXCHANGE"),
         routing_key="build.log",
         body=json.dumps(payload)
         )
