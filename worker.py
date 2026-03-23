@@ -2,9 +2,11 @@ import pika
 import os
 import json
 import redis
-from modules import apk_handling
+from modules import handling_json, handling_log
 from datetime import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
 #RabbitMQ Connection
 credentials = pika.PlainCredentials("guest", "guest")
 connection_params = pika.ConnectionParameters("localhost", 5672, '/', credentials)
@@ -20,7 +22,8 @@ r = redis.Redis(
     password=os.getenv("REDIS_PASSWORD"),
 )
 
-ROUTING_MAP= { "process.apk": apk_handling }
+ROUTING_MAP= { "process.json": handling_json,
+                "process.log": handling_log }
 
 def callback(ch, method, properties, body):
     try:
@@ -32,7 +35,7 @@ def callback(ch, method, properties, body):
             print(f"this task type: {task_type} is not supported")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             return
-        module.run(message)
+        module.run(message,ch)
         if job_id:
             r.set((job_id), json.dumps({ "status": "completed", "task_type": task_type, "last_update": datetime.now().isoformat()}))
 

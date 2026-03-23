@@ -39,7 +39,6 @@ async def createJob(upload_file: UploadFile = File(...)):
 
     file_type = upload_file.content_type
     routing_key = ROUTING_MAP.get(file_type, "process.unassigned")
-    print(file_type)
     if routing_key == "process.unassigned":
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_type}")
     
