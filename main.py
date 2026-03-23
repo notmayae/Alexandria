@@ -14,24 +14,25 @@ load_dotenv()
 
 #Redis Connection
 r = redis.Redis(
-    host='redis-11633.crce288.eu-central-1-1.ec2.cloud.redislabs.com',
-    port=11633,
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT")),
     decode_responses=True,
-    username="default",
+    username=os.getenv("REDIS_USERNAME"),
     password=os.getenv("REDIS_PASSWORD"),
 )
 
 #RabbitMQ Connection
-credentials = pika.PlainCredentials("guest", "guest")
-connection_params = pika.ConnectionParameters("localhost", 5672, '/', credentials)
+credentials = pika.PlainCredentials(os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), os.getenv("RABBITMQ_PORT"), '/', credentials)
 connection = pika.BlockingConnection(connection_params)
 channel = connection.channel()
 
 #Routing Map by file type
 ROUTING_MAP = {
-    "application/json": "process.json", 
+    "application/json": "process.blueprint",
+    "application/vnd.android.package-archive": "process.apk",
     "application/zip": "build.unity", 
-    "text/plain": "process.log"
+    "text/plain": "process.logs"
 }
 
 @app.post("/api/jobs")
@@ -49,7 +50,7 @@ async def createJob(upload_file: UploadFile = File(...)):
     MAX_DIRECT_PAYLOAD_SIZE = 1 * 1024 * 1024 # 1 Megabyte
     
     if upload_file.size >= MAX_DIRECT_PAYLOAD_SIZE:
-        save_directory = "/temp/alexandria_assets/"
+        save_directory = "/tmp/alexandria_assets/"
         os.makedirs(save_directory, exist_ok=True)
         file_path = f"{save_directory}{job_id}_{upload_file.filename}"
 
