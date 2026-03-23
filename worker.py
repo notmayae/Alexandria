@@ -18,7 +18,8 @@ load_dotenv(dotenv_path=env_path)
 
 # RabbitMQ Connection
 credentials = pika.PlainCredentials(os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
-connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), int(os.getenv("RABBITMQ_PORT")), '/', credentials)
+connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), int(os.getenv("RABBITMQ_PORT")), '/', credentials, heartbeat=3600, 
+    blocked_connection_timeout=3600)
 connection = pika.BlockingConnection(connection_params)
 channel = connection.channel()
 
@@ -77,14 +78,12 @@ def callback(ch, method, properties, body):
             # NACK the message so it doesn't get stuck as a "zombie" in RabbitMQ memory
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     finally:
-
-        # Check if this was a "ticket" payload that left a heavy file on the disk
-        if message.get("payload_type") == "ticket":
-            file_location = message.get("file_location")
-
-            # If the file exists, wipe it from the hard drive
-            if file_location and os.path.exists(file_location):
-                os.remove(file_location)
+        message = json.loads(body.decode())
+        file_location = message.get("file_location")
+        print(file_location)
+        # If the file exists, wipe it from the hard drive
+        if file_location and os.path.exists(file_location):
+            os.remove(file_location)
 
 # Read target queue from environment, allowing for horizontal scaling of specific task types
 queue_name = os.getenv("TASK_QUEUE")
