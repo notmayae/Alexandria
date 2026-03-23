@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # 1. The Message Broker (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine # 'management' includes the web UI!
+    container_name: alexandria_rabbitmq
+    ports:
+      - "5672:5672"   # The queue connection port
+      - "15672:15672" # The Web UI dashboard port
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - alexandria_net
+
+  # 2. The State Ledger (Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: alexandria_redis
+    ports:
+      - "6379:6379"
+    command: >
+      --requirepass ${REDIS_PASSWORD:-default_password}
+    volumes:
+      - redis_data:/data
+    networks:
+      - alexandria_net
+
+  # 3. The API Gateway (FastAPI)
+  api_gateway:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api # We will need a tiny Dockerfile for this
+    container_name: alexandria_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override the hosts so FastAPI knows to talk to the Docker containers, not 'localhost'
+      - REDIS_HOST=redis 
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      # Mount the local temp folder so the API can save the heavy Claim Check files to your Mac
+      - ./temp:/app/temp 
+    networks:
+      - alexandria_net
+
+# Persist data even if the containers are destroyed
+volumes:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  alexandria_net:
+    driver: bridge

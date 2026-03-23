@@ -1,0 +1,21 @@
+# 1. Start with a lightweight Python base image
+FROM python:3.10-slim
+
+# 2. Create a folder inside the container to hold our app
+WORKDIR /app
+
+# 3. Copy your requirements file first (for caching efficiency)
+# Make sure you have a requirements.txt file in your folder!
+COPY requirements.txt .
+
+# 4. Install the Python libraries
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. Copy the rest of your code (main.py, etc.) into the container
+COPY . .
+
+# 6. Expose the port FastAPI runs on
+EXPOSE 8000
+
+# 7. The command to start the FastAPI server when the container boots
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -9,7 +9,12 @@ from dotenv import load_dotenv
 # Modules encapsulate specific business logic (e.g., Unity compilation, Log analysis)
 from modules import handling_json, handling_log
 
-load_dotenv()
+# This finds the exact folder worker.py is sitting in
+current_dir = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.join(current_dir, '.env')
+
+# Force dotenv to load from this specific file path
+load_dotenv(dotenv_path=env_path)
 
 # RabbitMQ Connection
 credentials = pika.PlainCredentials(os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
