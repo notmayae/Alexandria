@@ -23,7 +23,12 @@ r = redis.Redis(
 
 # RabbitMQ Connection
 credentials = pika.PlainCredentials(os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
-connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), int(os.getenv("RABBITMQ_PORT")), '/', credentials)
+connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), 
+                                              int(os.getenv("RABBITMQ_PORT")),
+                                              '/',
+                                              credentials,
+                                              heartbeat=3600,
+                                              blocked_connection_timeout=3600)
 connection = pika.BlockingConnection(connection_params)
 channel = connection.channel()
 
