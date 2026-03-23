@@ -13,7 +13,7 @@ load_dotenv()
 
 # RabbitMQ Connection
 credentials = pika.PlainCredentials(os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
-connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), os.getenv("RABBITMQ_PORT"), '/', credentials)
+connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), int(os.getenv("RABBITMQ_PORT")), '/', credentials)
 connection = pika.BlockingConnection(connection_params)
 channel = connection.channel()
 
