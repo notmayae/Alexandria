@@ -29,10 +29,9 @@ channel = connection.channel()
 
 #Routing Map by file type
 ROUTING_MAP = {
-    "application/json": "process.blueprint",
-    "application/vnd.android.package-archive": "process.apk",
+    "application/json": "process.json", 
     "application/zip": "build.unity", 
-    "text/plain": "process.logs"
+    "text/plain": "process.log"
 }
 
 @app.post("/api/jobs")
@@ -40,6 +39,7 @@ async def createJob(upload_file: UploadFile = File(...)):
 
     file_type = upload_file.content_type
     routing_key = ROUTING_MAP.get(file_type, "process.unassigned")
+    print(file_type)
     if routing_key == "process.unassigned":
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_type}")
     
@@ -50,7 +50,7 @@ async def createJob(upload_file: UploadFile = File(...)):
     MAX_DIRECT_PAYLOAD_SIZE = 1 * 1024 * 1024 # 1 Megabyte
     
     if upload_file.size >= MAX_DIRECT_PAYLOAD_SIZE:
-        save_directory = "/tmp/alexandria_assets/"
+        save_directory = "/temp/alexandria_assets/"
         os.makedirs(save_directory, exist_ok=True)
         file_path = f"{save_directory}{job_id}_{upload_file.filename}"
 
