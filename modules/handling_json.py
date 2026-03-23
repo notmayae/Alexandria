@@ -22,6 +22,8 @@ def run(message,ch):
         json.dump(message.get("data"), blueprint, indent=4)
         print("json saved")
 
+    file_location = {"file_location": json_path}
+    message.update(file_location)
     unity_command = ["/Applications/Unity/Hub/Editor/2022.3.62f3/Unity.app/Contents/MacOS/Unity",
     "-quit",
     "-batchmode",
@@ -33,6 +35,7 @@ def run(message,ch):
     result = subprocess.run(unity_command, capture_output=True, text=True)
     print("command ran")
     send_log_to_rabbitmq(log_path, job_id, result,ch)
+    return(message)
 
 def send_log_to_rabbitmq(log_path, job_id, result,ch):
     payload = {

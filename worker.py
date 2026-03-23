@@ -57,7 +57,7 @@ def callback(ch, method, properties, body):
             return
         
         # 3. Execute the module logic (Passing 'ch' allows modules to publish chained events)
-        module.run(message,ch)
+        message = module.run(message,ch)
 
         # 4. Update the centralized state ledger upon success
         if job_id:
@@ -78,7 +78,6 @@ def callback(ch, method, properties, body):
             # NACK the message so it doesn't get stuck as a "zombie" in RabbitMQ memory
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     finally:
-        message = json.loads(body.decode())
         file_location = message.get("file_location")
         # If the file exists, wipe it from the hard drive
         if file_location and os.path.exists(file_location):

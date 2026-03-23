@@ -26,4 +26,5 @@ def run(message,ch):
 
         with open (f"/Users/mayaeven/Documents/GameEngineCompiler/Logs/Optimizations/{job_id}_optimized_json.json", "w") as file:
             json.dump(optimized_json, file)
+        return(message)
         
