@@ -8,17 +8,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 #RabbitMQ Connection
-credentials = pika.PlainCredentials("guest", "guest")
-connection_params = pika.ConnectionParameters("localhost", 5672, '/', credentials)
+credentials = pika.PlainCredentials(os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+connection_params = pika.ConnectionParameters(os.getenv("RABBITMQ_HOST"), os.getenv("RABBITMQ_PORT"), '/', credentials)
 connection = pika.BlockingConnection(connection_params)
 channel = connection.channel()
 
 #Redis Connection
 r = redis.Redis(
-    host='redis-11633.crce288.eu-central-1-1.ec2.cloud.redislabs.com',
-    port=11633,
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT")),
     decode_responses=True,
-    username="default",
+    username=os.getenv("REDIS_USERNAME"),
     password=os.getenv("REDIS_PASSWORD"),
 )
 
