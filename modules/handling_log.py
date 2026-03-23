@@ -1,6 +1,6 @@
 import json
 def run(message,ch):
-    log_location = message.get("log_location")
+    log_location = message.get("file_location")
     result = message.get("result_value")
     job_id = message.get("job_id")
 
@@ -9,7 +9,6 @@ def run(message,ch):
 
     if result == 0:
         utp_loc = log_content.find("##utp:")
-        #steps_loc = log_content[utp_loc:].find("steps") + utp_loc
         physx_loc = log_content[utp_loc:].find("[PhysX]") + utp_loc
         utp_stats = json.loads(log_content[utp_loc+6:physx_loc-1])
         
@@ -17,7 +16,6 @@ def run(message,ch):
         building_gradle_line = log_content.find('"Building Gradle project" took')
         building_gradle_ms = log_content[building_gradle_line:].find("ms") + building_gradle_line
         building_gradle_stats = float(log_content[building_gradle_line+30:building_gradle_ms-1])
-        #print(building_gradle_stat)
         
         
         android_sdk_line = log_content.find('"Detecting Android SDK" took')
@@ -28,5 +26,4 @@ def run(message,ch):
 
         with open (f"/Users/mayaeven/Documents/GameEngineCompiler/Logs/Optimizations/{job_id}_optimized_json.json", "w") as file:
             json.dump(optimized_json, file)
-        
         
