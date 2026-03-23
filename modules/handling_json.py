@@ -38,7 +38,7 @@ def send_log_to_rabbitmq(log_path, job_id, result,ch):
     payload = {
         "job_id": job_id,
         "task_type": "process.log",
-        "log_location": log_path,
+        "file_location": log_path,
         "result_value": result.returncode    
     }
     ch.basic_publish(
