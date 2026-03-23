@@ -29,7 +29,7 @@ channel = connection.channel()
 
 #Routing Map by file type
 ROUTING_MAP = {
-    "application/json": "process.blueprint",
+    "application/json": "process.json",
     "application/vnd.android.package-archive": "process.apk",
     "application/zip": "build.unity", 
     "text/plain": "process.logs"
