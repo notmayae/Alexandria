@@ -36,6 +36,7 @@ def callback(ch, method, properties, body):
     Core consumer loop. Validates messages, routes to modules, 
     manages Redis state, and handles fault tolerance.
     """
+    message = {}
     try:
         # 1. Parse the incoming RabbitMQ ticket
         message = json.loads(body.decode())
@@ -55,7 +56,6 @@ def callback(ch, method, properties, body):
         # 4. Update the centralized state ledger upon success
         if job_id:
             r.set((job_id), json.dumps({ "status": "completed", "task_type": task_type, "last_update": datetime.now().isoformat()}))
-
         # 5. Acknowledge success to RabbitMQ (deletes message from queue)
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -71,6 +71,15 @@ def callback(ch, method, properties, body):
             
             # NACK the message so it doesn't get stuck as a "zombie" in RabbitMQ memory
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+    finally:
+
+        # Check if this was a "ticket" payload that left a heavy file on the disk
+        if message.get("payload_type") == "ticket":
+            file_location = message.get("file_location")
+
+            # If the file exists, wipe it from the hard drive
+            if file_location and os.path.exists(file_location):
+                os.remove(file_location)
 
 # Read target queue from environment, allowing for horizontal scaling of specific task types
 queue_name = os.getenv("TASK_QUEUE")
